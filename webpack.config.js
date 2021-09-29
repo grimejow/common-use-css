@@ -1,11 +1,13 @@
 const path = require("path");
 const isDev = process.env.NODE_ENV !== "production";
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const VueLoaderPlugin = require("vue-loader/lib/plugin");
 const CopyPlugin = require("copy-webpack-plugin");
-
+const TerserPlugin = require("terser-webpack-plugin"); //不引入terser，单独引入css-minimizer会导致打包的js变大
 module.exports = {
   entry: "./src/main.js",
   output: {
@@ -63,6 +65,10 @@ module.exports = {
       },
     ],
   },
+  optimization: {
+    minimize: true,
+    minimizer: [new TerserPlugin(), new CssMinimizerPlugin()],
+  },
   resolve: {
     alias: {
       "@": path.resolve("src"),
@@ -86,7 +92,12 @@ module.exports = {
       },
     },
   },
-  devtool: "eval-cheap-module-source-map",
+  // performance: {
+  //   hints: false,
+  //   maxEntrypointSize: 512000,
+  //   maxAssetSize: 512000,
+  // },
+  // devtool: "eval-cheap-module-source-map",//加了这句会导致打包完的js超大
   plugins: [
     new MiniCssExtractPlugin({
       filename: "[name].css",
