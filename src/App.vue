@@ -1,5 +1,6 @@
 <template>
-  <div class="app-container">
+  <div
+    class="app-container test-flex-center-center">
     app
   </div>
 </template>
@@ -14,6 +15,6 @@ export default {
 </script>
 <style lang='less'>
 .app-container {
-  .aa();
+  color: orange;
 }
 </style>

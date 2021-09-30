@@ -2,7 +2,8 @@ const path = require("path");
 const isDev = process.env.NODE_ENV !== "production";
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
-
+const PurgecssPlugin = require("purgecss-webpack-plugin");
+const glob = require("glob-all");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const VueLoaderPlugin = require("vue-loader/lib/plugin");
@@ -19,21 +20,30 @@ module.exports = {
       vue$: "vue/dist/vue.esm.js",
     },
   },
+  resolveLoader: {
+    modules: ["./loader", "node_modules"],
+  },
   module: {
     rules: [
       {
         test: /\.(le|c)ss$/,
         use: [
           MiniCssExtractPlugin.loader, //要使用minicss必须删除vue-style-loader
+          {
+            loader: "ccc-loader",
+            options: {
+              name: "test",
+            },
+          },
           "css-loader",
           "postcss-loader",
           "less-loader",
-          {
-            loader: "style-resources-loader",
-            options: {
-              patterns: path.resolve(__dirname, "./src/style/index.less"),
-            },
-          },
+          // {
+          //   loader: "style-resources-loader",
+          //   options: {
+          //     patterns: path.resolve(__dirname, "./src/style/index.less"),
+          //   },
+          // },
         ],
       },
       {
@@ -103,16 +113,34 @@ module.exports = {
       filename: "[name].css",
       chunkFilename: "[id].css",
     }),
+    new PurgecssPlugin({
+      paths: glob.sync(
+        [
+          // path.join(__dirname, '../public/index.html'),
+          // path.join(__dirname, "./src/main.js"),
+          path.join(__dirname, "./src/App.vue"),
+          // path.join(__dirname, "./src/style/index.css"),
+        ],
+        { nodir: true }
+      ),
+    }),
     new HtmlWebpackPlugin({
       template: "./public/index.html",
       filename: "index.html",
     }),
     new CleanWebpackPlugin(),
     new VueLoaderPlugin(),
-    new CopyPlugin({
-      patterns: [
-        { from: "./src/style", to: path.resolve(__dirname, "./dist/style") },
-      ],
-    }),
+    new CopyPlugin([
+      {
+        from: "./src/style",
+        to: path.resolve(__dirname, "./dist/style"),
+        ignore: [".*"],
+      },
+      {
+        from: "./loader/ccc-loader",
+        to: path.resolve(__dirname, "./dist/loader"),
+        ignore: [".*"],
+      },
+    ]),
   ],
 };
